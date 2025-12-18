@@ -13,11 +13,11 @@
         }
     ],
     "require": {
-        "php": ">=7.1.3"
+        "php": ">=8.2"
     },
     "require-dev": {
-        "bolt/core": "^4.0.0",
-        "symplify/easy-coding-standard": "^10.2"
+        "bolt/core": "^6.0",
+        "symplify/easy-coding-standard": "^13"
     },
     "autoload": {
         "psr-4": {
@@ -27,9 +27,20 @@
     "minimum-stability": "dev",
     "prefer-stable": true,
     "extra": {
+        "branch-alias": {
+            "dev-main": "2.0.x-dev"
+        },
         "entrypoint": "Bolt\\SitemapExtension\\Extension"
     },
     "replace": {
         "bobdenotter/sitemap": "*"
+    },
+    "config": {
+        "allow-plugins": {
+            "symfony/flex": false,
+            "drupol/composer-packages": false,
+            "dealerdirect/phpcodesniffer-composer-installer": false,
+            "symfony/runtime": true
+        }
     }
 }
