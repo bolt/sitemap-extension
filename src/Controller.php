@@ -17,12 +17,13 @@ class Controller extends ExtensionController
     {
         $this->boltConfig = $config;
     }
+
     public function sitemap(Query $query): Response
     {
         $config = $this->getConfig();
         $showListings = $config->get('show_listings');
         $excludeContentTypes = $config->get('exclude_contenttypes', []);
-        $excludeListings =  $config->get('exclude_listings', []);
+        $excludeListings = $config->get('exclude_listings', []);
         $contentTypes = $this->boltConfig->get('contenttypes')->where('viewless', false)->keys()->implode(',');
         $records = $this->createPager($query, $contentTypes, $config['limit']);
 
