@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Bobdenotter\Sitemap;
+namespace Bolt\SitemapExtension;
 
 use Bolt\Extension\BaseExtension;
 

@@ -1,9 +1,12 @@
 {
-    "name": "bobdenotter/sitemap",
-    "description": "Provide a sitemap (.xml) for your Bolt 5 site",
+    "name": "bolt/sitemap-extension",
+    "description": "Provide a sitemap (.xml) for your Bolt site",
     "type": "bolt-extension",
     "license": "MIT",
     "authors": [
+        {
+            "name": "Bolt developers"
+        },
         {
             "name": "Bob den Otter",
             "email": "bobdenotter@gmail.com"
@@ -18,12 +21,15 @@
     },
     "autoload": {
         "psr-4": {
-            "Bobdenotter\\Sitemap\\": "src/"
+            "Bolt\\SitemapExtension\\": "src/"
         }
     },
     "minimum-stability": "dev",
     "prefer-stable": true,
     "extra": {
-        "entrypoint": "Bobdenotter\\Sitemap\\Extension"
+        "entrypoint": "Bolt\\SitemapExtension\\Extension"
+    },
+    "replace": {
+        "bobdenotter/sitemap": "*"
     }
 }

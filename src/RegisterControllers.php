@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Bobdenotter\Sitemap;
+namespace Bolt\SitemapExtension;
 
 use Symfony\Component\Routing\Route;
 
@@ -13,11 +13,11 @@ class RegisterControllers
         return [
             'xml_sitemap' => new Route(
                 '/sitemap.xml',
-                ['_controller' => 'Bobdenotter\Sitemap\Controller::sitemap']
+                ['_controller' => 'Bolt\SitemapExtension\Controller::sitemap']
             ),
             'xml_sitemap_xsl' => new Route(
                 '/sitemap.xsl',
-                ['_controller' => 'Bobdenotter\Sitemap\Controller::xsl']
+                ['_controller' => 'Bolt\SitemapExtension\Controller::xsl']
             ),
         ];
     }
