@@ -4,28 +4,24 @@ declare(strict_types=1);
 
 namespace Bolt\SitemapExtension;
 
-use Bolt\Configuration\Config;
+use Bolt\Entity\Content;
 use Bolt\Entity\Taxonomy;
 use Bolt\Extension\ExtensionController;
 use Bolt\Repository\TaxonomyRepository;
 use Bolt\Storage\Query;
+use Pagerfanta\PagerfantaInterface;
 use Symfony\Component\HttpFoundation\Response;
 
 class Controller extends ExtensionController
 {
-    public function __construct(Config $config)
-    {
-        $this->boltConfig = $config;
-    }
-
-    public function sitemap(Query $query): Response
+    public function sitemap(): Response
     {
         $config = $this->getConfig();
         $showListings = $config->get('show_listings');
         $excludeContentTypes = $config->get('exclude_contenttypes', []);
         $excludeListings = $config->get('exclude_listings', []);
         $contentTypes = $this->boltConfig->get('contenttypes')->where('viewless', false)->keys()->implode(',');
-        $records = $this->createPager($query, $contentTypes, $config['limit']);
+        $records = $this->createPager($this->query, $contentTypes, $config['limit']);
 
         $context = [
             'title' => 'Sitemap',
@@ -34,12 +30,11 @@ class Controller extends ExtensionController
             'excludeContentTypes' => $excludeContentTypes,
             'excludeListings' => $excludeListings,
         ];
-
         if (isset($config['taxonomies']) && is_array($config['taxonomies'])) {
             $taxonomyRecords = [];
 
             /** @var TaxonomyRepository $taxonomyRepository */
-            $taxonomyRepository = $this->getDoctrine()->getRepository(Taxonomy::class);
+            $taxonomyRepository = $this->entityManager->getRepository(Taxonomy::class);
 
             /** @var string $taxonomy */
             foreach ($config['taxonomies'] as $taxonomy) {
@@ -50,11 +45,7 @@ class Controller extends ExtensionController
         }
 
         $headerContentType = 'text/xml;charset=UTF-8';
-
-        $view = isset($config['templates']['xml'])
-            ? $config['templates']['xml']
-            : '@sitemap/sitemap.xml.twig';
-
+        $view = $config['templates']['xml'] ?? '@sitemap/sitemap.xml.twig';
         $response = $this->render($view, $context);
         $response->headers->set('Content-Type', $headerContentType);
 
@@ -66,9 +57,7 @@ class Controller extends ExtensionController
         $headerContentType = 'text/xml;charset=UTF-8';
 
         $config = $this->getConfig();
-        $view = isset($config['templates']['xsl'])
-            ? $config['templates']['xsl']
-            : '@sitemap/sitemap.xsl';
+        $view = $config['templates']['xsl'] ?? '@sitemap/sitemap.xsl';
 
         $response = $this->render($view);
         $response->headers->set('Content-Type', $headerContentType);
@@ -76,6 +65,9 @@ class Controller extends ExtensionController
         return $response;
     }
 
+    /**
+     * @return Content|PagerfantaInterface<Content>|null
+     */
     private function createPager(Query $query, string $contentType, int $pageSize)
     {
         $params = [
@@ -84,8 +76,11 @@ class Controller extends ExtensionController
             'order' => 'id',
         ];
 
-        return $query->getContentForTwig($contentType, $params)
-            ->setMaxPerPage($pageSize)
-            ->setCurrentPage(1);
+        $records = $query->getContentForTwig($contentType, $params);
+        if ($records instanceof PagerfantaInterface) {
+            $records->setMaxPerPage($pageSize)->setCurrentPage(1);
+        }
+
+        return $records;
     }
 }

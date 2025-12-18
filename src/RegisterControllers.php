@@ -8,6 +8,9 @@ use Symfony\Component\Routing\Route;
 
 class RegisterControllers
 {
+    /**
+     * @return array<string, Route>
+     */
     public static function getRoutes(): array
     {
         return [

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Bolt\SitemapExtension;
 
 use Bolt\Extension\BaseExtension;
+use Symfony\Component\Routing\Route;
 
 class Extension extends BaseExtension
 {
@@ -21,6 +22,8 @@ class Extension extends BaseExtension
      *
      * Note: These are cached by Symfony. If you make modifications to this, run
      * `bin/console cache:clear` to ensure your routes are parsed.
+     *
+     * @return array<string, Route>
      */
     public function getRoutes(): array
     {
