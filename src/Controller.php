@@ -8,7 +8,6 @@ use Bolt\Entity\Content;
 use Bolt\Entity\Taxonomy;
 use Bolt\Extension\ExtensionController;
 use Bolt\Repository\TaxonomyRepository;
-use Bolt\Storage\Query;
 use Pagerfanta\PagerfantaInterface;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -21,7 +20,7 @@ class Controller extends ExtensionController
         $excludeContentTypes = $config->get('exclude_contenttypes', []);
         $excludeListings = $config->get('exclude_listings', []);
         $contentTypes = $this->boltConfig->get('contenttypes')->where('viewless', false)->keys()->implode(',');
-        $records = $this->createPager($this->query, $contentTypes, $config['limit']);
+        $records = $this->createPager($contentTypes, $config['limit']);
 
         $context = [
             'title' => 'Sitemap',
@@ -68,7 +67,7 @@ class Controller extends ExtensionController
     /**
      * @return Content|PagerfantaInterface<Content>|null
      */
-    private function createPager(Query $query, string $contentType, int $pageSize)
+    private function createPager(string $contentType, int $pageSize)
     {
         $params = [
             'status' => 'published',
@@ -76,7 +75,7 @@ class Controller extends ExtensionController
             'order' => 'id',
         ];
 
-        $records = $query->getContentForTwig($contentType, $params);
+        $records = $this->query->getContentForTwig($contentType, $params);
         if ($records instanceof PagerfantaInterface) {
             $records->setMaxPerPage($pageSize)->setCurrentPage(1);
         }
