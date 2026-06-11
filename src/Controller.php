@@ -8,8 +8,10 @@ use Bolt\Entity\Content;
 use Bolt\Entity\Taxonomy;
 use Bolt\Extension\ExtensionController;
 use Bolt\Repository\TaxonomyRepository;
+use Illuminate\Support\Collection;
 use Pagerfanta\PagerfantaInterface;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\RouterInterface;
 
 class Controller extends ExtensionController
 {
@@ -28,6 +30,7 @@ class Controller extends ExtensionController
             'showListings' => $showListings,
             'excludeContentTypes' => $excludeContentTypes,
             'excludeListings' => $excludeListings,
+            'staticRoutes' => $this->collectStaticRoutes($config),
         ];
         if (isset($config['taxonomies']) && is_array($config['taxonomies'])) {
             $taxonomyRecords = [];
@@ -81,5 +84,68 @@ class Controller extends ExtensionController
         }
 
         return $records;
+    }
+
+    /**
+     * Collect static (template-only) routes for inclusion in the sitemap.
+     *
+     * When `static_routes` is enabled, every route handled by Bolt's
+     * TemplateController that can be generated without parameters is added.
+     * `<lastmod>` is taken from the modification time of the route's template
+     * file, and locale variants (routes for the same template that only differ
+     * by a `{_locale}` parameter) are emitted as `hreflang` alternates.
+     *
+     * @param Collection<array-key, mixed> $config
+     *
+     * @return array<int, array{loc: string, lastmod: ?\DateTimeInterface, alternates: array<string, string>}>
+     */
+    private function collectStaticRoutes(Collection $config): array
+    {
+        /** @var RouterInterface $router */
+        $router = $this->container->get('router');
+        $defaultLocale = $this->getParameter('kernel.default_locale');
+
+        $collector = new StaticRouteCollector(
+            $router,
+            $router->getRouteCollection(),
+            is_string($defaultLocale) ? $defaultLocale : '',
+            (bool) $config->get('static_routes', false)
+        );
+
+        $result = [];
+        foreach ($collector->collect((array) $config->get('exclude_static_routes', [])) as $entry) {
+            $result[] = [
+                'loc' => $entry['loc'],
+                'lastmod' => $this->resolveTemplateLastmod($entry['templateName']),
+                'alternates' => $entry['alternates'],
+            ];
+        }
+
+        return $result;
+    }
+
+    /**
+     * Resolve the last-modified time of a static route's template from the
+     * template file's mtime. The template name is resolved relative to the
+     * active theme directory, which is where TemplateController templates live.
+     */
+    private function resolveTemplateLastmod(?string $template): ?\DateTimeInterface
+    {
+        if ($template === null || $template === '') {
+            return null;
+        }
+
+        $path = $this->boltConfig->getPath('theme', true, $template);
+
+        if (! is_file($path)) {
+            return null;
+        }
+
+        $mtime = filemtime($path);
+        if ($mtime === false) {
+            return null;
+        }
+
+        return (new \DateTimeImmutable())->setTimestamp($mtime);
     }
 }
