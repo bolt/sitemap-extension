@@ -8,3 +8,12 @@ templates:
 #taxonomies: ["categories", "tags"]
 #exclude_contenttypes: ["pages"]
 #exclude_listings: ["pages"]
+
+# Include static (template-only) routes — routes handled by Bolt's
+# TemplateController, e.g. those defined in config/routes.yaml. When enabled,
+# every such route that can be generated without parameters is added to the
+# sitemap. `<lastmod>` is taken from the template file's modification time, and
+# `{_locale}` variants of the same template are emitted as hreflang alternates.
+static_routes: false
+# Route names to leave out when `static_routes` is enabled.
+exclude_static_routes: []

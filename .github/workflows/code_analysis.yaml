@@ -49,6 +49,9 @@ jobs:
           - name: PHPStan
             run: vendor/bin/phpstan analyse --ansi
 
+          - name: PHPUnit
+            run: vendor/bin/phpunit
+
           - name: Check composer.json and composer.lock
             run: composer validate --strict --ansi
 

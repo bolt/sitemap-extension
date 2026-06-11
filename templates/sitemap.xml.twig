@@ -41,6 +41,18 @@
             {%- endif -%}
         {%- endfor -%}
     {%- endif -%}
+
+    {%- for page in staticRoutes|default([]) %}
+        <url>
+            <loc>{{ page.loc }}</loc>
+            <changefreq>weekly</changefreq>
+            <lastmod>{{ (page.lastmod ?? 'now')|date('Y-m-d\\TH:i:sP') }}</lastmod>
+            <priority>0.8</priority>
+            {%- for locale, href in page.alternates %}
+            <xhtml:link rel="alternate" hreflang="{{ locale }}" href="{{ href }}" />
+            {%- endfor %}
+        </url>
+    {%- endfor -%}
 </urlset>
 
 {%- block urlBlock %}
