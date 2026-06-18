@@ -11,7 +11,11 @@
     {%- for record in records -%}
         {%- set isListing = false -%}
         {%- set contentType = record.definition -%}
-        {% if showListings %}
+        {%- set isSingleton = contentType.singleton -%}
+        {%- set isHomepage = (record|link) == '/' -%}
+        {# Singletons are served at their slugless page, so their listing entry would
+           just duplicate the record entry below. Skip listings for singletons. #}
+        {% if showListings and not isSingleton %}
             {%- if lastContentTypeSlug != contentType.slug and not contentType.viewless_listing and contentType.slug not in excludeListings -%}
                 {%- if (contentType.hide_listing_from_xml_sitemap is not defined) or (not contentType.hide_listing_from_xml_sitemap) -%}
 
@@ -27,6 +31,14 @@
         {%- endif -%}
         {%- if record|link is not empty and contentType.slug not in excludeContentTypes -%}
             {%- set url = record|link -%}
+            {# Singletons have no user-facing record slug — strip the trailing
+               /{slug} so the URL matches the slugless page visitors actually see
+               (e.g. /contact, not /contact/contact). Only strip when that slug is
+               actually present, so this is a safe no-op when record|link is already
+               slugless. The homepage ("/") is left untouched. #}
+            {%- if isSingleton and not isHomepage and url ends with ('/' ~ record.slug) -%}
+                {%- set url = url|split('/')|slice(0, -1)|join('/') -%}
+            {%- endif -%}
             {%- set priority = 0.8 -%}
             {{ block('urlBlock') }}
         {%- endif -%}
@@ -56,7 +68,12 @@
         {% endblock priority -%}
         {% if record is defined and record.definition.locales.all|length > 1 %}
             {% for locale in record.definition.locales %}
-                <xhtml:link rel="alternate" hreflang="{{ locale }}" href="{{ record|link(true, locale) }}" />
+                {%- set altUrl = record|link(true, locale) -%}
+                {# Strip the record slug only when present (no-op if already slugless). #}
+                {%- if record.definition.singleton and altUrl ends with ('/' ~ record.getSlug(locale)) -%}
+                    {%- set altUrl = altUrl|split('/')|slice(0, -1)|join('/') -%}
+                {%- endif -%}
+                <xhtml:link rel="alternate" hreflang="{{ locale }}" href="{{ altUrl }}"/>
             {% endfor %}
         {% endif %}
         {% if record is defined and record|image is not empty and not isListing -%}
