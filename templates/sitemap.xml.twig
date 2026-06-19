@@ -69,8 +69,12 @@
         {% if record is defined and record.definition.locales.all|length > 1 %}
             {% for locale in record.definition.locales %}
                 {%- set altUrl = record|link(true, locale) -%}
-                {# Strip the record slug only when present (no-op if already slugless). #}
-                {%- if record.definition.singleton and altUrl ends with ('/' ~ record.getSlug(locale)) -%}
+                {# The alternate URL is built from the record link, which ends with
+                   /{slug}. For singleton record entries and for listing entries the
+                   user-facing page is slugless, so strip the trailing /{slug} (a no-op
+                   when already slugless). This keeps each alternate pointing at the same
+                   page as <loc>, in the matching locale — rather than at one record. #}
+                {%- if (record.definition.singleton or isListing) and altUrl ends with ('/' ~ record.getSlug(locale)) -%}
                     {%- set altUrl = altUrl|split('/')|slice(0, -1)|join('/') -%}
                 {%- endif -%}
                 <xhtml:link rel="alternate" hreflang="{{ locale }}" href="{{ altUrl }}"/>
